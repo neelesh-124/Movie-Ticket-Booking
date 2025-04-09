@@ -1,0 +1,19 @@
+{
+  "name": "movie-app-backend",
+  "version": "1.0.0",
+  "description": "A backend system for a movie booking application. The system will allow users to search for movies, book tickets, and manage their bookings.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "WildCard",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2",
+    "nodemon": "^3.1.9"
+  }
+}
