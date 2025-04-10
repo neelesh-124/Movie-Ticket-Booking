@@ -1,32 +1,29 @@
 import { Router } from "express";
 import User from "../models/user.model.js";
+import bcrypt from "bcrypt";
+import { createJwtTokenForUser } from "../services/authentication.js";
 
 const router = Router();
 
 router.post("/signup", async (req, res) => {
   const { fullName, userId, email, password } = req.body;
 
-  let plainPassword = password;
-
   if (!fullName || !userId || !email || !password)
-    res.send({ err: "Input fields cannot be empty!" }).status(300);
+    return res.status(400).send({ err: "Input fields cannot be empty!" });
 
-  // we need to write this hashing algorithm inside user model, so that whenever the user changed password it is rehashed again. But for now we do not have any change password route so we are going with this.
-  bcrypt.hash(password, 10).then(function (err, hash) {
-    // Store hash in your password DB.
-    if (err) console.log("Error hashing password");
-    else password = hash;
-  });
+  // we need to write this hashing algorithm inside user model, so that whenever the user changed password it is rehashed again. But for now we do not have any CHANGE PASSWORD route so we are going with this.
+  const hash = await bcrypt.hash(password, 10);
 
   console.log("Plain text password: ", plainPassword);
-  console.log("Hashed password: ", password);
+  console.log("Hashed password: ", hash);
 
   await User.create({
     fullName,
     userId,
     email,
-    password,
+    password: hash,
   });
+  res.status(200).send({ msg: "User successfully registered" });
 });
 
 router.post("/signin", async (req, res) => {
@@ -34,11 +31,17 @@ router.post("/signin", async (req, res) => {
   // check if user exists in DB
   const user = await User.findOne({ userId: userId });
 
-  if (!user) res.send({ msg: "Invalid userId or password!" }).status(300);
+  if (!user) res.status(400).send({ msg: "Invalid userId!" });
 
-  const compareResult = bcrypt.compare(password, user.password);
-  console.log("Compare result,", compareResult);
-  res.send({ status: "pending" }).status(200);
+  const comparePassword = await bcrypt.compare(password, user.password);
+  // this promise returns true or false based on entered password is correct or incorrect.
+
+  if (comparePassword == true) {
+    // if password is correct we generate a JWT token and store it in the cookies.
+    const token = createJwtTokenForUser(user);
+    // setting cookie for user
+    res.cookie("token", token).status(200).send({ status: "logged in" });
+  } else res.status(401).send({ status: "Invalid password!" });
 });
 
 export default router;
