@@ -8,9 +8,7 @@ const app = express();
 
 // connect database
 mongoose
-  .connect(
-    "mongodb+srv://neeleshverma:hello124@cluster0.xvvrh.mongodb.net/movie-ticket-booking"
-  )
+  .connect(process.env.MONGO_URL)
   .then(() => console.log(`Database connected.`))
   .catch((err) => console.log(`Database connection error: `, err));
 
