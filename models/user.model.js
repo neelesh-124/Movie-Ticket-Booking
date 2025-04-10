@@ -2,9 +2,15 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    id: {
+    fullName: {
       type: String,
       required: true,
+      default: "",
+    },
+    userId: {
+      type: String,
+      required: true,
+      unique: true,
     },
     email: {
       type: String,
