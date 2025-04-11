@@ -1,9 +1,34 @@
 import { Router } from "express";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
-import { createJwtTokenForUser } from "../services/authentication.js";
+import { handlePayment } from "../services/payment.js";
+import {
+  createJwtTokenForUser,
+  validateToken,
+} from "../services/authentication.js";
 
 const router = Router();
+
+router.post("/handlePayment", handlePayment);
+
+router.get("/bookings", async (req, res) => {
+  const cookie = req.cookies.token;
+  if (!cookie) res.status(200).send({ msg: "User not logged in!" });
+
+  const payload = validateToken(cookie);
+
+  // console.log(payload);
+  if (!payload) res.status(200).send({ msg: "User not logged in!" });
+  const user = await User.findOne({ userId: payload.userId });
+  res.status(200).send({ msg: "pending", bookings: user.bookings });
+});
+
+router.get("/logout", (req, res) => {
+  res
+    .clearCookie("token")
+    .status(200)
+    .send({ response: "Cookie cleared, Logged Out" });
+});
 
 router.post("/signup", async (req, res) => {
   const { fullName, userId, email, password } = req.body;
